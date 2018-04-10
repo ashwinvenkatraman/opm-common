@@ -22,6 +22,7 @@
 
 #include <opm/common/OpmLog/LogUtil.hpp>
 #include <string>
+#include <ctime>
 
 namespace Opm
 {
@@ -69,6 +70,7 @@ namespace Opm
         {
             prefix_flag_ = Log::MessageType::Warning + Log::MessageType::Error 
                          + Log::MessageType::Problem + Log::MessageType::Bug;
+            add_time_ = true;
         }
         /// Returns a copy of the input string with a flag-dependant
         /// prefix (if use_prefix) and the entire message in a
@@ -76,6 +78,12 @@ namespace Opm
         virtual std::string format(const int64_t message_flag, const std::string& message) override
         {
             std::string msg = message;
+            if (add_time_) {
+                std::time_t now = std::time(nullptr); // get time now
+                char s[100];
+                strftime(s, sizeof s, "%F %H:%M:%S %Z", localtime(&now));
+                msg = std::string(s) + ":" + msg;
+            }
             if (message_flag & prefix_flag_) {
                 msg = Log::prefixMessage(message_flag, msg);
             }
@@ -87,6 +95,7 @@ namespace Opm
     private:
         bool use_color_coding_ = false;
         int64_t prefix_flag_ = 0;
+        bool add_time_ = false;
     };
 
 
